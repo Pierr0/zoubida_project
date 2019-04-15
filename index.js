@@ -17,7 +17,7 @@ let serv = http.createServer(function(req, res) { // Création d'un serveur - La
     }
     console.log(req.url) // Affiche les console dans l'interface serveur - PAS DANS LE NAVIGATEUR - req.url permets la récuperation de l'url appelle par l'utilisateur sur le navigateur
     if (req.url == '/') { // Si l'utilisateur n'a pas mise de route (http://localhost:8080)
-        res.end("<h1>OOUUII Zoubida</h1>") // Ecriture sur la page - res.end => echo en php - Elle affiche du code html
+        res.end("<h1>Projet Zoubida by Pierre & Anthony</h1>") // Ecriture sur la page - res.end => echo en php - Elle affiche du code html
     } else if (req.url == '/user') { // Si l'utilisateur tape une route (http://localhost:8080/user)
         res.writeHead(200, { "Content-Type": "application/json" }); // Definition du code error - https://fr.wikipedia.org/wiki/Liste_des_codes_HTTP
         res.end(JSON.stringify(Mike)) // Ecriture sur la page - res.end => echo en php
