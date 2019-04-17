@@ -2,99 +2,119 @@
 const express = require('express'), // Modele de routing - Permet la gestion les routes.
     bodyParser = require('body-parser'), // Middleware - Permet de parser les données envoyer par l'utilisateur et de les traiter de manière facile.
     app = express(),
-    bdd = mysql.createConnection({
-        host: 'localhost',
-        user: 'mike',
-        password: 'mike',
-        database: 'cpcsi2'
-    }); // Initialisation de la base de donnée
+    mysql = require("./modules/mysql.js").mysql;
+    const fs = require('fs')
 /** END Import Module NodeJs **/
-
-
-bdd.connect(); // Connection à la base de donnée MySql
+const path = __dirname + "/modules/index.html"
 
 const urlencodedParser = bodyParser.urlencoded({ extended: false }) // Middleware - Il ce declache avant le lancenement de la function (Pour notre cas, avanc les fonction lier au route pour parser les data envoyer par le client)
 
 /** START Création de route sous express NodeJs **/
+
 app.get('/', function(req, res) { // Création d'un route sous express
-    res.writeHead(200, { "content-type": "text/plain;" })
-    res.sendFile(__dirname + "/index.html"); // Afficher la page index.html cote client
+    if(fs.existsSync(path)){
+        //res.writeHead(200, { "content-type": "text/plain;" })
+        res.sendFile(__dirname + "/modules/index.html"); // Afficher la page index.html cote client
+    }else{
+        res.writeHead(404, { "content-type": "text/plain;" })
+        res.end("Page not found" )
+    }
 })
 
-app.post('/', urlencodedParser, function(req, res) {
-    res.writeHead(200, { "content-type": "application/json; charset=utf-8" })
-    res.end(JSON.stringify({ error: false, data: req.body }))
+app.post('/register', urlencodedParser, (req, res) => {
+
+    if(req.body.firstname === undefined || req.body.firstname.trim() ==""){
+        res.end(JSON.stringify({
+            error: true,
+            message: "Not user firstname"
+        }))
+    }else if(req.body.lastname === undefined || req.body.lastname.trim() ==""){
+        res.end(JSON.stringify({
+            error: true,
+            message: "Not user lastname"
+        }))
+    }else if(req.body.email === undefined || req.body.email.trim() ==""){
+        res.end(JSON.stringify({
+            error: true,
+            message: "Not user email"
+        }))
+    }else if(req.body.password === undefined || req.body.password.trim() ==""){
+        res.end(JSON.stringify({
+            error: true,
+            message: "Not user password"
+        }))
+    }else if(req.body.date_naissance === undefined || req.body.date_naissance.trim() ==""){
+        res.end(JSON.stringify({
+            error: true,
+            message: "Not user date_naissance"
+        }))
+    }else if(req.body.sexe === undefined || req.body.sexe.trim() ==""){
+        res.end(JSON.stringify({
+            error: true,
+            message: "Not user sexe"
+        }))
+    }else{
+        let user = {
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            date_naissance: req.body.date_naissance,
+            sexe: req.body.sexe,
+            password: req.body.password,
+            email: req.body.email
+        }
+        mysql.registerUser(user).then((data) => {
+            res.end(JSON.stringify(data))
+        })
+
+    }
 })
 
-app.post('/user/add', urlencodedParser, function(req, res) {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+//Route pour le Login
+app.post('/login', urlencodedParser, function(req, res) {
+
     let retour = {
         error: false,
         message: []
     }
 
-    if (req.body.nom === undefined || req.body.nom.trim() == "") {
-        retour.error = true;
-        retour.message.push("La variable Nom n'est pas definie")
-    }
-
-    if (req.body.prenom === undefined || req.body.prenom.trim() == "") {
-        retour.error = true;
-        retour.message.push("La variable Prenom n'est pas definie")
-    }
-
-    if (req.body.dateNaiss === undefined || req.body.dateNaiss.trim() == "") {
-        retour.error = true;
-        retour.message.push("La variable Date de Naissance n'est pas definie")
-    }
-
-    if (req.body.sexe === undefined || req.body.sexe.trim() == "") {
-        retour.error = true;
-        retour.message.push("La variable Sexe n'est pas definie")
-    }
-
-    if (retour.error == true) {
-        res.writeHead(403, { "content-type": "application/json; charset=utf-8" })
-        res.end(JSON.stringify(retour))
-    } else {
-
-        bdd.query("INSERT INTO `user` (`id`, `nom`, `prenom`, `dateNaiss`, `sexe`) VALUES (NULL, '" + req.body.nom + "', '" + req.body.prenom + "', '" + req.body.dateNaiss + "', '" + req.body.sexe + "');", function(error, result) { // Lancement de la requet SQL
+    if (req.body.mail !== undefined || req.body.mail.trim() != "" && req.body.password !== undefined || req.body.password.trim() != "") {
+        bdd.query("SELECT * FROM users WHERE email like '" + req.body.email + "' AND password like '" + req.body.password + "';", function(error, result) { // Lancement de la requet SQL
             if (error)
                 throw error;
-            res.writeHead(201, { "content-type": "application/json; charset=utf-8" })
-            res.end(JSON.stringify(result))
-
+            if(result.lenght == 0){
+                retour.error = true;
+                retour.message.push("votre email ou password est erroné")
+                res.writeHead(401, { "content-type": "application/json; charset=utf-8" })
+                res.end(JSON.stringify(retour))
+            }else{
+                retour.error = false;
+                retour.message.push("L'utilisateur a été authentifié succès")
+                res.writeHead(201, { "content-type": "application/json; charset=utf-8" })
+                res.end(JSON.stringify(result))
+            }
         })
     }
 
+    if (req.body.mail === undefined || req.body.mail.trim() == "" || req.body.password === undefined || req.body.password.trim() == "") {
+        retour.error = true;
+        retour.message.push("l'email/password est manquant")
+    }
+
+    if (retour.error == true && (retour.message == "l'email/password est manquant" || retour.message == "Votre email ou password est erroné")) {
+        res.writeHead(401, { "content-type": "application/json; charset=utf-8" })
+        res.end(JSON.stringify(retour))
+    }
+
+    if (retour.error == true && retour.message == "Trop de tentative sur l'email XXXXX - Veuillez patientez 1h") {
+        res.writeHead(409, { "content-type": "application/json; charset=utf-8" })
+        res.end(JSON.stringify(retour))
+    }
+
 })
 
-app.get('/user/:id', function(req, res) {
-    console.log(req.params.id)
-    bdd.query("SELECT * FROM user WHERE id = " + req.params.id, function(error, result) {
-        if (error)
-            throw error;
-        if (result.length == 0) {
-            res.end("<h2>User not exist</h2>")
-        } else {
-            res.writeHead(200, { "content-type": "application/json; charset=utf-8" })
-            res.end(JSON.stringify(result[0]))
-        }
-    })
-})
-
-app.get('/users', function(req, res) {
-    bdd.query("SELECT * FROM user", function(error, result) {
-        if (error)
-            throw error;
-        res.writeHead(200, { "content-type": "application/json; charset=utf-8" })
-        res.end(JSON.stringify(result))
-    })
-})
-
-app.get('/error', function(req, res) {
-    res.writeHead(501, { "content-type": "application/json; charset=utf-8" })
-    res.end(JSON.stringify({ error: "route error" }))
-})
+////////////////////////////////////////////////////////////////////////////////////////
 
 /** END Création de route sous express NodeJs **/
 
