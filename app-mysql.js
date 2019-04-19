@@ -23,35 +23,63 @@ app.get('/', function(req, res) { // Création d'un route sous express
 
 app.post('/register', urlencodedParser, (req, res) => {
 
+    let retour = {
+        error: false,
+        message: []
+    }
+
+    var reg = /^[a-zA-Z][\w\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$/;
+    var resultat = reg.test(req.body.email);
+
     if(req.body.firstname === undefined || req.body.firstname.trim() ==""){
         res.end(JSON.stringify({
             error: true,
-            message: "Not user firstname"
+            message: "L'une ou plusieurs des données obligatoire sont manquantes"
         }))
     }else if(req.body.lastname === undefined || req.body.lastname.trim() ==""){
         res.end(JSON.stringify({
             error: true,
-            message: "Not user lastname"
+            message: "L'une ou plusieurs des données obligatoire sont manquantes"
         }))
     }else if(req.body.email === undefined || req.body.email.trim() ==""){
         res.end(JSON.stringify({
             error: true,
-            message: "Not user email"
+            message: "L'une ou plusieurs des données obligatoire sont manquantes"
         }))
     }else if(req.body.password === undefined || req.body.password.trim() ==""){
         res.end(JSON.stringify({
             error: true,
-            message: "Not user password"
+            message: "L'une ou plusieurs des données obligatoire sont manquantes"
         }))
     }else if(req.body.date_naissance === undefined || req.body.date_naissance.trim() ==""){
         res.end(JSON.stringify({
             error: true,
-            message: "Not user date_naissance"
+            message: "L'une ou plusieurs des données obligatoire sont manquantes"
         }))
     }else if(req.body.sexe === undefined || req.body.sexe.trim() ==""){
         res.end(JSON.stringify({
             error: true,
-            message: "Not user sexe"
+            message: "L'une ou plusieurs des données obligatoire sont manquantes"
+        }))
+    }else if(req.body.firstname.lenght() <= 3){
+        res.end(JSON.stringify({
+            error: true,
+            message: "L'un des données obligatoire ne sont pas conformes"
+        }))
+    }else if(req.body.firstname.lenght() <= 3){
+        res.end(JSON.stringify({
+            error: true,
+            message: "L'un des données obligatoire ne sont pas conformes"
+        }))
+    }else if(req.body.lastname.lenght() <= 3){
+        res.end(JSON.stringify({
+            error: true,
+            message: "L'un des données obligatoire ne sont pas conformes"
+        }))
+    }else if($resultat != true){
+        res.end(JSON.stringify({
+            error: true,
+            message: "Votre email n'est pas correct"
         }))
     }else{
         let user = {
@@ -65,29 +93,44 @@ app.post('/register', urlencodedParser, (req, res) => {
         mysql.registerUser(user).then((data) => {
             res.end(JSON.stringify(data))
         })
+    }
 
+    if(retour.message == "L'une ou plusieurs des données obligatoire sont manquantes" || retour.message == "L'un des données obligatoire ne sont pas conformes" || retour.message == "Votre email n'est pas correct"){
+        res.writeHead(401, { "content-type": "text/plain;" })
+        res.end(retour)
     }
 })
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
+
+Remplacer les requete sql par des call de fonctions de mysql
+
 //Route pour le Login
 app.post('/login', urlencodedParser, function(req, res) {
 
     let retour = {
         error: false,
-        message: []
+        message: [],
+        tokens: []
     }
 
-    if (req.body.mail !== undefined || req.body.mail.trim() != "" && req.body.password !== undefined || req.body.password.trim() != "") {
+    if (req.body.email !== undefined || req.body.email.trim() != "" && req.body.password !== undefined || req.body.password.trim() != "") {
         bdd.query("SELECT * FROM users WHERE email like '" + req.body.email + "' AND password like '" + req.body.password + "';", function(error, result) { // Lancement de la requet SQL
             if (error)
                 throw error;
             if(result.lenght == 0){
-                retour.error = true;
-                retour.message.push("votre email ou password est erroné")
-                res.writeHead(401, { "content-type": "application/json; charset=utf-8" })
-                res.end(JSON.stringify(retour))
+                bdd.query("SELECT * FROM tokens WHERE user_id = '" + result[0].user_id + "';", function(error, resultat) {
+                    retour.error = true;
+                    retour.message.push("votre email ou password est erroné")
+                    retour.tokens = {
+                        token: resultat[0].token,
+                        'refresh-token': resultat[0].refresh-token,
+                        createdAt: resultat[0].createdAt
+                    }
+                    res.writeHead(401, { "content-type": "application/json; charset=utf-8" })
+                    res.end(JSON.stringify(retour))
+                })
             }else{
                 retour.error = false;
                 retour.message.push("L'utilisateur a été authentifié succès")
@@ -113,7 +156,7 @@ app.post('/login', urlencodedParser, function(req, res) {
     }
 
 })
-
+*/
 ////////////////////////////////////////////////////////////////////////////////////////
 
 /** END Création de route sous express NodeJs **/
