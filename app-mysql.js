@@ -22,7 +22,7 @@ app.get('/', function(req, res) { // Création d'un route sous express
 })
 
 app.post('/register', urlencodedParser, (req, res) => {
-
+    
     let retour = {
         error: false,
         message: []
@@ -61,22 +61,17 @@ app.post('/register', urlencodedParser, (req, res) => {
             error: true,
             message: "L'une ou plusieurs des données obligatoire sont manquantes"
         }))
-    }else if(req.body.firstname.lenght() <= 3){
+    }else if(req.body.firstname.length <= 3){
         res.end(JSON.stringify({
             error: true,
             message: "L'un des données obligatoire ne sont pas conformes"
         }))
-    }else if(req.body.firstname.lenght() <= 3){
+    }else if(req.body.lastname.length <= 3){
         res.end(JSON.stringify({
             error: true,
             message: "L'un des données obligatoire ne sont pas conformes"
         }))
-    }else if(req.body.lastname.lenght() <= 3){
-        res.end(JSON.stringify({
-            error: true,
-            message: "L'un des données obligatoire ne sont pas conformes"
-        }))
-    }else if($resultat != true){
+    }else if(resultat != true){
         res.end(JSON.stringify({
             error: true,
             message: "Votre email n'est pas correct"
